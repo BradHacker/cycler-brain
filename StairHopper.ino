@@ -37,6 +37,10 @@ const int L_RPWM = 4;
 const int L_LPWM = 3;
 const int R_RPWM = 6;
 const int R_LPWM = 5;
+//const int AL_RPWM = 4;
+//const int AL_LPWM = 3;
+//const int AR_RPWM = 6;
+//const int AR_LPWM = 5;
 
 const int RIGHT_ARM_PIN = 16;
 const int LEFT_ARM_PIN = 17;
@@ -45,8 +49,8 @@ const int HEAD_PIN = 7;
 
 const int LEFT_LEG = 0;
 const int RIGHT_LEG = 1;
-const int LEG_FORWARD = 0;
-const int LEG_REVERSE = 1;
+const int LEG_FORWARD = 255;
+const int LEG_REVERSE = 0;
 
 //const int ARM_UP = -500;
 //const int ARM_DOWN = 500;
@@ -75,9 +79,10 @@ Servo head;
 int headAngle = 90;
 
 void setup() {
+  delay(5000);
   // put your setup code here, to run once:
   Serial.begin(9600);
-  Serial.println("yo poppi bootin up...");
+  Serial.println("Cycler is booting up...");
 
   bluefruit.setDeviceName("WM BOT");
   bluefruit.begin();
@@ -189,11 +194,11 @@ boolean isCodeEqual(char *a, char *b) {
 }
 
 void processData(char code[5]) {
-//  Serial.print("Processing code: ");
-//  for (int i = 0; i < 5; i++) {
-//    Serial.print(code[i]);
-//  }
-//  Serial.print("\n");
+  Serial.print("Processing code: ");
+  for (int i = 0; i < 5; i++) {
+    Serial.print(code[i]);
+  }
+  Serial.print("\n");
 //  Serial.println(isCodeEqual(code, UP_PRESS) == true);
   if (code[0] == 'H') {
     char codeAngle[4] = {code[2], code[3], code[4]};
@@ -273,35 +278,26 @@ void processData(char code[5]) {
   }
 }
 
-void driveArm(int side, int armState) {
-  unsigned long currentMillis = millis();
-  
-  if (side == LEFT_ARM_PIN) {
-    if (leftPWMState = LOW) {
-      if (currentMillis - leftArmMillis > 5250) {
-        leftPWMState = HIGH;
-        leftArmMillis = currentMillis;
-      }
-    } else {
-      if (currentMillis - leftArmMillis >= armState) {
-        leftPWMState = LOW;
-        leftArmMillis = currentMillis;
-      }
-    }
-    digitalWrite(side, leftPWMState);
+void driveArm(int side, int dir) {
+  int lpwm;
+  int rpwm;
+  if (side == RIGHT_LEG) {
+    lpwm = AR_LPWM;
+    rpwm = AR_RPWM;
   } else {
-    if (rightPWMState = LOW) {
-      if (currentMillis - rightArmMillis > 5250) {
-        rightPWMState = HIGH;
-        rightArmMillis = currentMillis;
-      }
-    } else {
-      if (currentMillis - rightArmMillis >= armState) {
-        rightPWMState = LOW;
-        rightArmMillis = currentMillis;
-      }
-    }
-    digitalWrite(side, rightPWMState);
+    lpwm = AL_LPWM;
+    rpwm = AL_RPWM;
+  }
+
+  if (legSpeed == ARM_DIR_UP) {
+    digitalWrite(rpwm, SPEED);
+    digitalWrite(lpwm, 0);
+  } else if (legSpeed == ARM_DIR_DOWN) {
+    digitalWrite(rpwm, 0);
+    digitalWrite(lpwm, SPEED);
+  } else {
+    digitalWrite(lpwm, LOW);
+    digitalWrite(rpwm, LOW);
   }
 }
 
@@ -316,12 +312,12 @@ void driveLeg(int side, int legSpeed) {
     rpwm = L_RPWM;
   }
 
-  if (legSpeed > 0) {
-    digitalWrite(lpwm, SPEED);
-    digitalWrite(rpwm, 0);
-  } else if (legSpeed < 0) {
+  if (legSpeed == LEG_FORWARD) {
+    digitalWrite(rpwm, SPEED);
     digitalWrite(lpwm, 0);
-    digitalWrite(rpwm, -SPEED);
+  } else if (legSpeed == LEG_REVERSE) {
+    digitalWrite(rpwm, 0);
+    digitalWrite(lpwm, SPEED);
   } else {
     digitalWrite(lpwm, LOW);
     digitalWrite(rpwm, LOW);
