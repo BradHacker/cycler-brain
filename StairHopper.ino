@@ -37,13 +37,13 @@ const int L_RPWM = 4;
 const int L_LPWM = 3;
 const int R_RPWM = 6;
 const int R_LPWM = 5;
-//const int AL_RPWM = 4;
-//const int AL_LPWM = 3;
-//const int AR_RPWM = 6;
-//const int AR_LPWM = 5;
+const int AL_RPWM = 22;
+const int AL_LPWM = 23;
+const int AR_RPWM = 21;
+const int AR_LPWM = 20;
 
-const int RIGHT_ARM_PIN = 16;
-const int LEFT_ARM_PIN = 17;
+const int RIGHT_ARM = 0;
+const int LEFT_ARM = 1;
 
 const int HEAD_PIN = 7;
 
@@ -79,16 +79,6 @@ Servo head;
 int headAngle = 90;
 
 void setup() {
-  delay(5000);
-  // put your setup code here, to run once:
-  Serial.begin(9600);
-  Serial.println("Cycler is booting up...");
-
-  bluefruit.setDeviceName("WM BOT");
-  bluefruit.begin();
-
-  head.attach(HEAD_PIN);
-
   pinMode(R_RPWM, OUTPUT);
   pinMode(R_LPWM, OUTPUT);
   pinMode(L_RPWM, OUTPUT);
@@ -98,14 +88,22 @@ void setup() {
   digitalWrite(L_RPWM, LOW);
   digitalWrite(L_LPWM, LOW);
 
-//  leftArmControl.begin();
-//  rightArmControl.begin();
-  pinMode(RIGHT_ARM_PIN, OUTPUT);
-  pinMode(LEFT_ARM_PIN, OUTPUT);
-  digitalWrite(RIGHT_ARM_PIN, LOW);
-  digitalWrite(LEFT_ARM_PIN, LOW);
-//  leftArm.attach(LEFT_ARM_PIN);
-//  rightArm.attach(RIGHT_ARM_PIN);
+//  pinMode(AR_RPWM, OUTPUT);
+//  pinMode(AR_LPWM, OUTPUT);
+//  pinMode(AL_RPWM, OUTPUT);
+//  pinMode(AL_LPWM, OUTPUT);
+//  digitalWrite(AR_RPWM, LOW);
+//  digitalWrite(AR_LPWM, LOW);
+//  digitalWrite(AL_RPWM, LOW);
+//  digitalWrite(AL_LPWM, LOW);
+
+  Serial.begin(9600);
+  Serial.println("Cycler is booting up...");
+
+  bluefruit.setDeviceName("WM BOT");
+  bluefruit.begin();
+
+  head.attach(HEAD_PIN);
 }
 
 aci_evt_opcode_t laststatus = ACI_EVT_DISCONNECTED;
@@ -158,12 +156,9 @@ void loop() {
       processData(keyCode);
     }
     // Right Arm
-    driveArm(RIGHT_ARM_PIN, rightArmState);
+//    driveArm(RIGHT_ARM_PIN, rightArmState);
     // Left Arm
-    driveArm(LEFT_ARM_PIN, leftArmState);
-    // Drive Head
-//    if (rightArmState == ARM_DOWN) headAngle++;
-//    if (rightArmState == ARM_UP) headAngle--;
+//    driveArm(LEFT_ARM_PIN, leftArmState);
     
 
     if (Serial.available()) {
@@ -199,77 +194,50 @@ void processData(char code[5]) {
     Serial.print(code[i]);
   }
   Serial.print("\n");
-//  Serial.println(isCodeEqual(code, UP_PRESS) == true);
   if (code[0] == 'H') {
     char codeAngle[4] = {code[2], code[3], code[4]};
     headAngle = atoi(codeAngle);
 //    Serial.println(headAngle);
     head.write(headAngle);
   }
-  else if (code[0] == 'L') {
-    char codeSpeed[4] = {code[1], code[2], code[3], code[4]};
-    int pwmSpeed = atoi(codeSpeed);
-    driveLeg(LEFT_LEG, pwmSpeed);
-  }
-  else if (code[0] == 'R') {
-    char codeSpeed[4] = {code[1], code[2], code[3], code[4]};
-    int pwmSpeed = atoi(codeSpeed);
-    driveLeg(RIGHT_LEG, pwmSpeed);
-  }
   else {
-    if (isCodeEqual(code, RIGHT_UP)) {
-      rightArmState = ARM_UP;
-//      digitalWrite(8, HIGH);
-//      Serial.println("R_UP");
-//      driveArm(RIGHT_ARM_PIN, ARM_UP);
-    }
-    if (isCodeEqual(code, RIGHT_STOP)) {
-      rightArmState = STOP;
-//      digitalWrite(8, LOW);
-//      driveArm(RIGHT_ARM_PIN, rightArmState);
-    }
-    if (isCodeEqual(code, RIGHT_DOWN)) {
-      rightArmState = ARM_DOWN;
-//      digitalWrite(8, HIGH);
-//      driveArm(RIGHT_ARM_PIN, rightArmState);
-    }
-    if (isCodeEqual(code, LEFT_UP)) {
-      leftArmState = ARM_UP;
-//      digitalWrite(1, HIGH);
-//      driveArm(LEFT_ARM_PIN, leftArmState);
-    }
-    if (isCodeEqual(code, LEFT_STOP)) {
-      leftArmState = STOP;
-//      digitalWrite(1, LOW);
-//      driveArm(LEFT_ARM_PIN, leftArmState);
-    }
-    if (isCodeEqual(code, LEFT_DOWN)) {
-      leftArmState = ARM_DOWN;
-//      digitalWrite(1, HIGH);
-//      driveArm(LEFT_ARM_PIN, leftArmState);
-    }
+//    if (isCodeEqual(code, RIGHT_UP)) {
+//      driveArm(RIGHT_ARM, ARM_UP);
+//    }
+//    if (isCodeEqual(code, RIGHT_STOP)) {
+//      digitalWrite(AR_RPWM, LOW);
+//      digitalWrite(AR_LPWM, LOW);
+//    }
+//    if (isCodeEqual(code, RIGHT_DOWN)) {
+//      driveArm(RIGHT_ARM, ARM_DOWN);
+//    }
+//    if (isCodeEqual(code, LEFT_UP)) {
+//      driveArm(LEFT_ARM, ARM_UP);
+//    }
+//    if (isCodeEqual(code, LEFT_STOP)) {
+//      digitalWrite(AL_RPWM, LOW);
+//      digitalWrite(AL_LPWM, LOW);
+//    }
+//    if (isCodeEqual(code, LEFT_DOWN)) {
+//      driveArm(LEFT_ARM, ARM_DOWN);
+//    }
     if (isCodeEqual(code, FORWARD)) {
-      Serial.println("FORWARD");
       driveLeg(LEFT_LEG, LEG_FORWARD);
       driveLeg(RIGHT_LEG, LEG_FORWARD);
     }
     if (isCodeEqual(code, TURN_LEFT)) {
-      Serial.println("LEFT");
       driveLeg(LEFT_LEG, LEG_REVERSE);
       driveLeg(RIGHT_LEG, LEG_FORWARD);
     }
     if (isCodeEqual(code, TURN_RIGHT)) {
-      Serial.println("RIGHT");
       driveLeg(LEFT_LEG, LEG_FORWARD);
       driveLeg(RIGHT_LEG, LEG_REVERSE);
     }
     if (isCodeEqual(code, REVERSE)) {
-      Serial.println("REVERSE");
       driveLeg(LEFT_LEG, LEG_REVERSE);
       driveLeg(RIGHT_LEG, LEG_REVERSE);
     }
     if (isCodeEqual(code, DRIVE_STOP)) {
-      Serial.println("STOP");
       digitalWrite(R_RPWM, LOW);
       digitalWrite(R_LPWM, LOW);
       digitalWrite(L_RPWM, LOW);
@@ -278,28 +246,28 @@ void processData(char code[5]) {
   }
 }
 
-void driveArm(int side, int dir) {
-  int lpwm;
-  int rpwm;
-  if (side == RIGHT_LEG) {
-    lpwm = AR_LPWM;
-    rpwm = AR_RPWM;
-  } else {
-    lpwm = AL_LPWM;
-    rpwm = AL_RPWM;
-  }
-
-  if (legSpeed == ARM_DIR_UP) {
-    digitalWrite(rpwm, SPEED);
-    digitalWrite(lpwm, 0);
-  } else if (legSpeed == ARM_DIR_DOWN) {
-    digitalWrite(rpwm, 0);
-    digitalWrite(lpwm, SPEED);
-  } else {
-    digitalWrite(lpwm, LOW);
-    digitalWrite(rpwm, LOW);
-  }
-}
+//void driveArm(int aside, int adir) {
+//  int alpwm;
+//  int arpwm;
+//  if (aside == RIGHT_ARM) {
+//    alpwm = AR_LPWM;
+//    arpwm = AR_RPWM;
+//  } else {
+//    alpwm = AL_LPWM;
+//    arpwm = AL_RPWM;
+//  }
+//
+//  if (adir == ARM_UP) {
+//    digitalWrite(arpwm, SPEED);
+//    digitalWrite(alpwm, 0);
+//  } else if (adir == ARM_DOWN) {
+//    digitalWrite(arpwm, 0);
+//    digitalWrite(alpwm, SPEED);
+//  } else {
+//    digitalWrite(alpwm, LOW);
+//    digitalWrite(arpwm, LOW);
+//  }
+//}
 
 void driveLeg(int side, int legSpeed) {
   int lpwm;
